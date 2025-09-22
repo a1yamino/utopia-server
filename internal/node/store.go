@@ -12,6 +12,7 @@ type Store interface {
 	CreateNode(node *models.Node) error
 	GetNode(id string) (*models.Node, error)
 	ListNodes() ([]*models.Node, error)
+	UpdateNode(node *models.Node) error
 }
 
 // memStore 是 Store 接口的一个内存实现，主要用于测试。
@@ -61,4 +62,16 @@ func (s *memStore) ListNodes() ([]*models.Node, error) {
 		nodes = append(nodes, node)
 	}
 	return nodes, nil
+}
+
+// UpdateNode updates a node in the store.
+func (s *memStore) UpdateNode(node *models.Node) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.nodes[node.ID]; !exists {
+		return fmt.Errorf("node with id %s not found", node.ID)
+	}
+	s.nodes[node.ID] = node
+	return nil
 }

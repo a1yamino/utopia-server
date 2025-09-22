@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS `gpu_claims`;
+DROP TABLE IF EXISTS `nodes`;
+DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `roles`;

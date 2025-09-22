@@ -1,0 +1,21 @@
+# Server configuration
+server:
+  addr: "0.0.0.0"
+  port: "8080"
+
+# Database configuration
+database:
+  dsn: "root:password@tcp(127.0.0.1:3306)/utopia?parseTime=true"
+
+# JWT configuration
+jwt:
+  secret_key: "a-very-secret-key"
+  token_ttl: 3600 # 1 hour in seconds
+
+# FRP (tunnel) configuration
+frp:
+  bind_port: 7000
+  token: "utopia-auth-token"
+  dashboard_port: 7500
+  dashboard_user: "admin"
+  dashboard_pwd: "admin"

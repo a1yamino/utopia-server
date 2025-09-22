@@ -10,7 +10,8 @@ import (
 type GpuClaimStore interface {
 	CreateGpuClaim(claim *models.GpuClaim) error
 	ListPendingGpuClaims() ([]*models.GpuClaim, error)
-	UpdateGpuClaim(claim *models.GpuClaim) error
+	ListByPhase(phases ...models.GpuClaimPhase) ([]models.GpuClaim, error)
+	Update(claim *models.GpuClaim) error
 }
 
 // memStore is an in-memory implementation of GpuClaimStore for testing.
@@ -48,8 +49,24 @@ func (s *memStore) ListPendingGpuClaims() ([]*models.GpuClaim, error) {
 	return pendingClaims, nil
 }
 
-// UpdateGpuClaim updates an existing GPU claim in the store.
-func (s *memStore) UpdateGpuClaim(claim *models.GpuClaim) error {
+func (s *memStore) ListByPhase(phases ...models.GpuClaimPhase) ([]models.GpuClaim, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []models.GpuClaim
+	for _, claim := range s.claims {
+		for _, phase := range phases {
+			if claim.Status.Phase == phase {
+				result = append(result, *claim)
+				break
+			}
+		}
+	}
+	return result, nil
+}
+
+// Update updates an existing GPU claim in the store.
+func (s *memStore) Update(claim *models.GpuClaim) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.claims[claim.ID] = claim

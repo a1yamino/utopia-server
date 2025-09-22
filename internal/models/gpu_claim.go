@@ -28,10 +28,11 @@ type GpuClaimSpec struct {
 
 // GpuClaimStatus 定义了 GPU 资源的实际状态。
 type GpuClaimStatus struct {
-	Phase       GpuClaimPhase `json:"phase"`       // Pending, Running, Failed, Completed
-	NodeName    string        `json:"nodeName"`    // 被调度到的节点名称
-	ContainerID string        `json:"containerId"` // 在节点上运行的容器 ID
-	AccessURL   string        `json:"accessUrl"`   // 容器的公网访问地址
+	Phase       GpuClaimPhase `json:"phase"`            // Pending, Running, Failed, Completed
+	NodeName    string        `json:"nodeName"`         // 被调度到的节点名称
+	ContainerID string        `json:"containerId"`      // 在节点上运行的容器 ID
+	AccessURL   string        `json:"accessUrl"`        // 容器的公网访问地址
+	Reason      string        `json:"reason,omitempty"` // 当 claim 失败时的原因
 }
 
 // GpuClaim 是一个声明式的 API 对象，用于描述对 GPU 资源的需求。

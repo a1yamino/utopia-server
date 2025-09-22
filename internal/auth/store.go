@@ -11,6 +11,8 @@ import (
 type Store interface {
 	CreateUser(user *models.User) error
 	GetUserByUsername(username string) (*models.User, error)
+	GetUserWithRole(username string) (*models.User, *models.Role, error)
+	GetRoleByName(name string) (*models.Role, error)
 }
 
 // memStore is an in-memory implementation of the Store interface for testing.
@@ -52,4 +54,28 @@ func (s *memStore) GetUserByUsername(username string) (*models.User, error) {
 		return nil, errors.New("user not found")
 	}
 	return user, nil
+}
+
+// GetUserWithRole retrieves a user and their role from the in-memory store.
+// NOTE: This is a simplified implementation for testing and does not populate the role.
+func (s *memStore) GetUserWithRole(username string) (*models.User, *models.Role, error) {
+	user, err := s.GetUserByUsername(username)
+	if err != nil {
+		return nil, nil, err
+	}
+	// In-memory store doesn't have a concept of roles, return a dummy one.
+	return user, &models.Role{ID: user.RoleID}, nil
+}
+
+// GetRoleByName retrieves a role by name from the in-memory store.
+// NOTE: This is a simplified implementation for testing.
+func (s *memStore) GetRoleByName(name string) (*models.Role, error) {
+	// In-memory store doesn't have a concept of roles, return a dummy one.
+	if name == "developer" {
+		return &models.Role{ID: 2, Name: "developer"}, nil
+	}
+	if name == "admin" {
+		return &models.Role{ID: 1, Name: "admin"}, nil
+	}
+	return nil, errors.New("role not found")
 }

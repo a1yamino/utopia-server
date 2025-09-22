@@ -9,32 +9,26 @@ import (
 	"path/filepath"
 	"syscall"
 	"text/template"
+	"utopia-server/internal/config"
 )
 
 const frpsConfigTemplate = `
 bindPort = {{ .BindPort }}
-auth.token = "{{ .AuthToken }}"
+auth.token = "{{ .Token }}"
 webServer.port = {{ .DashboardPort }}
-webServer.user = "admin"
-webServer.password = "admin"
+webServer.user = "{{ .DashboardUser }}"
+webServer.password = "{{ .DashboardPwd }}"
 `
-
-// Config holds the configuration for the frps service.
-type Config struct {
-	BindPort      int
-	DashboardPort int
-	AuthToken     string
-}
 
 // Service manages the frps subprocess.
 type Service struct {
-	config     Config
+	config     config.FRPConfig
 	cmd        *exec.Cmd
 	configFile string
 }
 
 // NewService creates a new frps service.
-func NewService(config Config) *Service {
+func NewService(config config.FRPConfig) *Service {
 	return &Service{
 		config: config,
 	}

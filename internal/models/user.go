@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 // Policies 定义了角色的权限集合。
@@ -32,9 +33,10 @@ type Role struct {
 
 // User 代表一个系统用户。
 type User struct {
-	ID           int    `json:"id" gorm:"primaryKey"`
-	Username     string `json:"username" gorm:"unique"`
-	PasswordHash string `json:"-"` // 密码哈希不应被序列化到 JSON 中
-	RoleID       int    `json:"roleId"`
-	Role         Role   `json:"role"`
+	ID           int       `json:"id" gorm:"primaryKey"`
+	Username     string    `json:"username" gorm:"unique"`
+	PasswordHash string    `json:"-"` // 密码哈希不应被序列化到 JSON 中
+	RoleID       int       `json:"roleId"`
+	Role         Role      `json:"role"`
+	CreatedAt    time.Time `json:"createdAt"`
 }

@@ -1,0 +1,6 @@
+
+bindPort = 7000
+auth.token = "utopia-auth-token"
+webServer.port = 7500
+webServer.user = "admin"
+webServer.password = "admin"

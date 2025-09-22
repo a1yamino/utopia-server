@@ -1,38 +1,41 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
 	"utopia-server/internal/auth"
+	"utopia-server/internal/config"
 	"utopia-server/internal/controller"
 	"utopia-server/internal/node"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Config holds the configuration for the API server.
-type Config struct {
-	ListenAddr string
-}
-
 // Server is the API server.
 type Server struct {
-	router        *gin.Engine
-	config        *Config
+	Router        *gin.Engine
+	config        config.ServerConfig
 	authService   *auth.Service
 	nodeService   *node.Service
 	GpuClaimStore controller.GpuClaimStore
 }
 
 // NewServer creates a new API server.
-func NewServer(config *Config, authService *auth.Service, nodeService *node.Service, gpuClaimStore controller.GpuClaimStore) *Server {
+func NewServer(config config.ServerConfig, authService *auth.Service, nodeService *node.Service, gpuClaimStore controller.GpuClaimStore) *Server {
 	router := gin.Default() // gin.Default() includes Logger and Recovery middleware.
 
 	server := &Server{
-		router:        router,
+		Router:        router,
 		config:        config,
 		authService:   authService,
 		nodeService:   nodeService,
 		GpuClaimStore: gpuClaimStore,
 	}
+
+	router.Static("/ui", "./web/ui")
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/ui")
+	})
 
 	server.setupRoutes()
 
@@ -40,7 +43,7 @@ func NewServer(config *Config, authService *auth.Service, nodeService *node.Serv
 }
 
 func (s *Server) setupRoutes() {
-	api := s.router.Group("/api")
+	api := s.Router.Group("/api")
 
 	// Auth routes
 	auth := api.Group("/auth")
@@ -50,7 +53,7 @@ func (s *Server) setupRoutes() {
 	// GPU Claim routes
 	gpuClaims := api.Group("/gpu-claims")
 	gpuClaims.Use(s.AuthMiddleware()) // Protect this group
-	gpuClaims.POST("", s.handleCreateGpuClaim)
+	gpuClaims.POST("", s.RBACMiddleware(), s.handleCreateGpuClaim)
 
 	// Node routes
 	nodes := api.Group("/nodes")
@@ -68,5 +71,5 @@ func (s *Server) setupRoutes() {
 
 // Run starts the API server.
 func (s *Server) Run() error {
-	return s.router.Run(s.config.ListenAddr)
+	return s.Router.Run(fmt.Sprintf("%s:%s", s.config.Addr, s.config.Port))
 }

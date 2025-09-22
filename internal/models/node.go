@@ -2,6 +2,12 @@ package models
 
 import "time"
 
+const (
+	NodeStatusOnline      = "Online"
+	NodeStatusOffline     = "Offline"
+	NodeStatusRegistering = "Registering"
+)
+
 // GpuInfo 描述了节点上单个 GPU 的信息。
 type GpuInfo struct {
 	ID          string `json:"id"`                    // GPU 的唯一标识符

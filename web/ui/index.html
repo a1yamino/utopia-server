@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utopia GPU Claim</title>
+</head>
+<body>
+
+    <div id="login-section">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username" required>
+        <input type="password" id="login-password" placeholder="Password" required>
+        <button id="login-btn">Login</button>
+        <p>Don't have an account? <a href="#" id="show-register">Register here</a></p>
+    </div>
+
+    <div id="register-section" style="display: none;">
+        <h2>Register</h2>
+        <input type="text" id="register-username" placeholder="Username" required>
+        <input type="password" id="register-password" placeholder="Password" required>
+        <button id="register-btn">Register</button>
+        <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+    </div>
+
+    <div id="claim-section" style="display: none;">
+        <h2>Claim GPU</h2>
+        <input type="text" id="image" placeholder="Docker Image (e.g., ubuntu:20.04)" required>
+        <input type="number" id="gpuCount" placeholder="GPU Count" required>
+        <button id="claim-btn">Claim GPU</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginSection = document.getElementById('login-section');
+            const registerSection = document.getElementById('register-section');
+            const claimSection = document.getElementById('claim-section');
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const claimBtn = document.getElementById('claim-btn');
+            const showRegisterLink = document.getElementById('show-register');
+            const showLoginLink = document.getElementById('show-login');
+
+            showRegisterLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loginSection.style.display = 'none';
+                registerSection.style.display = 'block';
+            });
+
+            showLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                registerSection.style.display = 'none';
+                loginSection.style.display = 'block';
+            });
+
+            loginBtn.addEventListener('click', () => {
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+
+                fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Login failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    localStorage.setItem('jwt', data.token);
+                    loginSection.style.display = 'none';
+                    registerSection.style.display = 'none';
+                    claimSection.style.display = 'block';
+                    alert('Login successful!');
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+            });
+
+            registerBtn.addEventListener('click', () => {
+                const username = document.getElementById('register-username').value;
+                const password = document.getElementById('register-password').value;
+
+                fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text || 'Registration failed') });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Registration successful! Please log in.');
+                    registerSection.style.display = 'none';
+                    loginSection.style.display = 'block';
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            });
+
+            claimBtn.addEventListener('click', () => {
+                const image = document.getElementById('image').value;
+                const gpuCount = parseInt(document.getElementById('gpuCount').value, 10);
+                const token = localStorage.getItem('jwt');
+
+                if (!token) {
+                    alert('You are not logged in.');
+                    return;
+                }
+
+                fetch('/api/gpu-claims', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ image, gpu_count: gpuCount }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Claim submitted successfully! Claim ID: ' + data.id);
+                })
+                .catch(error => {
+                    alert('Error submitting claim: ' + error.message);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
