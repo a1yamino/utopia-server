@@ -85,7 +85,7 @@ func main() {
 	sched := scheduler.NewScheduler(nodeStore)
 
 	// Create and run the controller in a separate goroutine
-	agentClient := client.NewAgentClient()
+	agentClient := client.NewAgentClient(cfg.FRP)
 	ctrl := controller.NewController(gpuClaimStore, sched, nodeStore, agentClient)
 	stopCh := make(chan struct{})
 	defer close(stopCh)
@@ -104,7 +104,7 @@ func main() {
 	healthCheckService := node.NewHealthCheckService(nodeStore)
 	go healthCheckService.Run(stopCh)
 
-	server := api.NewServer(cfg.Server, authService, nodeService, gpuClaimStore)
+	server := api.NewServer(cfg.Server, authService, nodeService, gpuClaimStore, agentClient)
 
 	go func() {
 		listenAddr := fmt.Sprintf("%s:%s", cfg.Server.Addr, cfg.Server.Port)

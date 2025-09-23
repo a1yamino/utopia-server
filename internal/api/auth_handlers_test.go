@@ -10,10 +10,14 @@ import (
 	"time"
 
 	"utopia-server/internal/auth"
+	"utopia-server/internal/client"
 	"utopia-server/internal/config"
+	"utopia-server/internal/controller"
 	"utopia-server/internal/database"
+	"utopia-server/internal/node"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAuthAPI(t *testing.T) {
@@ -21,19 +25,26 @@ func TestAuthAPI(t *testing.T) {
 	testDB, dbName := database.SetupTestDB(t)
 	defer database.TeardownTestDB(testDB, dbName)
 
+	// Load config
+	cfg, err := config.Load()
+	require.NoError(t, err, "Failed to load config")
+
+	// Override DSN to use the test database
+	cfg.Database.DSN = fmt.Sprintf("root:password@tcp(127.0.0.1:3306)/%s?parseTime=true", dbName)
+	cfg.JWT.SecretKey = "test-secret"
+	cfg.JWT.TokenTTL = int(time.Hour.Seconds())
+
 	// Create real dependencies
-	cfg := &config.Config{
-		JWT: config.JWTConfig{
-			SecretKey: "test-secret",
-			TokenTTL:  int(time.Hour.Seconds()),
-		},
-		Database: config.DatabaseConfig{
-			DSN: fmt.Sprintf("root:password@tcp(127.0.0.1:3306)/%s?parseTime=true", dbName),
-		},
-	}
 	authStore := auth.NewMySQLStore(testDB)
 	authService := auth.NewService(authStore, cfg)
-	server := NewServer(cfg.Server, authService, nil, nil) // Pass nil for other services for now
+
+	nodeStore := node.NewMySQLStore(testDB)
+	nodeService := node.NewService(nodeStore)
+
+	gpuClaimStore := controller.NewMySQLStore(testDB)
+	agentClient := client.NewAgentClient(cfg.FRP)
+
+	server := NewServer(cfg.Server, authService, nodeService, gpuClaimStore, agentClient)
 
 	// Start a test server
 	testServer := httptest.NewServer(server.Router)

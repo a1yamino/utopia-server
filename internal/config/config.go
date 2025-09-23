@@ -39,6 +39,7 @@ type FRPConfig struct {
 	DashboardPort int    `mapstructure:"dashboard_port"`
 	DashboardUser string `mapstructure:"dashboard_user"`
 	DashboardPwd  string `mapstructure:"dashboard_pwd"`
+	AgentToken    string `mapstructure:"agent_token"`
 }
 
 // Load 从文件和环境变量中加载配置。
@@ -54,7 +55,9 @@ func Load() (*Config, error) {
 	// 设置配置文件
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
-	v.AddConfigPath("./configs")
+	v.AddConfigPath("./configs")     // For running from root
+	v.AddConfigPath("../configs")    // For running from cmd/server
+	v.AddConfigPath("../../configs") // For running from internal/api, etc.
 	v.AddConfigPath(".")
 
 	// 从环境变量中读取

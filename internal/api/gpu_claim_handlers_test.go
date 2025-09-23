@@ -11,6 +11,7 @@ import (
 
 	"database/sql"
 	"utopia-server/internal/auth"
+	"utopia-server/internal/client"
 	"utopia-server/internal/config"
 	"utopia-server/internal/controller"
 	"utopia-server/internal/database"
@@ -18,6 +19,7 @@ import (
 	"utopia-server/internal/node"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -75,22 +77,23 @@ func TestGpuClaimAPI(t *testing.T) {
 	testDB, dbName := database.SetupTestDB(t)
 	defer database.TeardownTestDB(testDB, dbName)
 
+	// Load config
+	cfg, err := config.Load()
+	require.NoError(t, err, "Failed to load config")
+
+	// Override DSN to use the test database
+	cfg.Database.DSN = fmt.Sprintf("root:password@tcp(127.0.0.1:3306)/%s?parseTime=true", dbName)
+	cfg.JWT.SecretKey = "test-secret"
+	cfg.JWT.TokenTTL = int(time.Hour.Seconds())
+
 	// Create real dependencies
-	cfg := &config.Config{
-		JWT: config.JWTConfig{
-			SecretKey: "test-secret",
-			TokenTTL:  int(time.Hour.Seconds()),
-		},
-		Database: config.DatabaseConfig{
-			DSN: fmt.Sprintf("root:password@tcp(127.0.0.1:3306)/%s?parseTime=true", dbName),
-		},
-	}
 	authStore := auth.NewMySQLStore(testDB)
 	gpuClaimStore := controller.NewMySQLStore(testDB)
 	nodeStore := node.NewMySQLStore(testDB)
 	authService := auth.NewService(authStore, cfg)
 	nodeService := node.NewService(nodeStore)
-	server := NewServer(cfg.Server, authService, nodeService, gpuClaimStore)
+	agentClient := client.NewAgentClient(cfg.FRP)
+	server := NewServer(cfg.Server, authService, nodeService, gpuClaimStore, agentClient)
 
 	// Start a test server
 	testServer := httptest.NewServer(server.Router)

@@ -19,3 +19,4 @@ frp:
   dashboard_port: 7500
   dashboard_user: "admin"
   dashboard_pwd: "admin"
+  agent_token: "a-secret-internal-token"

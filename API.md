@@ -63,6 +63,28 @@
         }
         ```
 
+##### **2.2 `GET /api/nodes/:id/status`**
+
+*   **描述**: 获取指定节点的实时状态和指标。此接口会直接代理到 `node-agent` 的 `/api/v1/metrics` 端点。
+*   **认证**: 需要 Bearer Token。
+*   **路径参数**:
+    *   `id` (string, required): 节点的唯一 ID。
+*   **响应**:
+    *   `200 OK` (`application/json`): 成功获取指标。响应体是 `node-agent` 返回的原始 JSON 数据。
+        ```json
+        {
+          "node_id": "string",
+          "cpu_usage_percent": "number",
+          "memory_usage_percent": "number",
+          "gpus": [ ... ],
+          "system": { ... }
+        }
+        ```
+    *   `401 Unauthorized`: 未提供或提供了无效的 JWT。
+    *   `404 Not Found`: 指定的节点 ID 不存在。
+    *   `409 Conflict`: 节点当前不是 `Online` 状态。
+    *   `502 Bad Gateway`: 从 `node-agent` 获取指标失败。
+
 ---
 
 #### **3. GPU 资源声明 (GPU Claims)**

@@ -6,16 +6,19 @@ import (
 	"fmt"
 	"net/http"
 
+	"utopia-server/internal/config"
 	"utopia-server/internal/models"
 )
 
 type AgentClient struct {
 	httpClient *http.Client
+	config     config.FRPConfig
 }
 
-func NewAgentClient() *AgentClient {
+func NewAgentClient(cfg config.FRPConfig) *AgentClient {
 	return &AgentClient{
 		httpClient: &http.Client{},
+		config:     cfg,
 	}
 }
 
@@ -51,4 +54,32 @@ func (c *AgentClient) CreateContainer(node *models.Node, claim *models.GpuClaim)
 	}
 
 	return result.ContainerID, nil
+}
+
+func (c *AgentClient) GetNodeMetrics(node *models.Node) (map[string]interface{}, error) {
+	url := fmt.Sprintf("http://localhost:%d/api/v1/metrics", node.ControlPort)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.config.AgentToken)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get metrics, status code: %d", resp.StatusCode)
+	}
+
+	var metrics map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&metrics); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return metrics, nil
 }

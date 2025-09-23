@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"utopia-server/internal/auth"
+	"utopia-server/internal/client"
 	"utopia-server/internal/config"
 	"utopia-server/internal/controller"
 	"utopia-server/internal/node"
@@ -18,10 +19,11 @@ type Server struct {
 	authService   *auth.Service
 	nodeService   *node.Service
 	GpuClaimStore controller.GpuClaimStore
+	agentClient   *client.AgentClient
 }
 
 // NewServer creates a new API server.
-func NewServer(config config.ServerConfig, authService *auth.Service, nodeService *node.Service, gpuClaimStore controller.GpuClaimStore) *Server {
+func NewServer(config config.ServerConfig, authService *auth.Service, nodeService *node.Service, gpuClaimStore controller.GpuClaimStore, agentClient *client.AgentClient) *Server {
 	router := gin.Default() // gin.Default() includes Logger and Recovery middleware.
 
 	server := &Server{
@@ -30,6 +32,7 @@ func NewServer(config config.ServerConfig, authService *auth.Service, nodeServic
 		authService:   authService,
 		nodeService:   nodeService,
 		GpuClaimStore: gpuClaimStore,
+		agentClient:   agentClient,
 	}
 
 	router.Static("/ui", "./web/ui")
@@ -61,6 +64,7 @@ func (s *Server) setupRoutes() {
 	nodes.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
+	nodes.GET("/:id/status", s.AuthMiddleware(), s.handleGetNodeStatus)
 
 	// Admin routes
 	admin := api.Group("/admin")

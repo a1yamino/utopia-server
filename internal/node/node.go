@@ -35,3 +35,8 @@ func (s *Service) CreateNode(hostname string) (*models.Node, error) {
 
 	return newNode, nil
 }
+
+// GetNode retrieves a node by its ID.
+func (s *Service) GetNode(id string) (*models.Node, error) {
+	return s.store.GetNode(id)
+}
