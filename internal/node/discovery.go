@@ -91,9 +91,13 @@ func (s *DiscoveryService) discover() {
 	}
 
 	for _, proxy := range proxies {
-		if strings.HasSuffix(proxy.Name, "_control") {
-			nodeIDStr := strings.TrimSuffix(proxy.Name, "_control")
-			s.updateNode(nodeIDStr, proxy.RemotePort)
+		if strings.Contains(proxy.Name, "control_") {
+			// 找到 "control_" 的位置，然后提取后面的部分
+			index := strings.Index(proxy.Name, "control_")
+			if index != -1 {
+				nodeIDStr := proxy.Name[index+len("control_"):]
+				s.updateNode(nodeIDStr, proxy.RemotePort)
+			}
 		}
 	}
 }
