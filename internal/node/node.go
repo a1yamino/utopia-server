@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"utopia-server/internal/models"
-
-	"github.com/google/uuid"
 )
 
 // Service 封装了节点管理的业务逻辑。
@@ -23,7 +21,6 @@ func NewService(store Store) *Service {
 // CreateNode 创建一个新节点。
 func (s *Service) CreateNode(hostname string) (*models.Node, error) {
 	newNode := &models.Node{
-		ID:       "node-" + uuid.New().String(),
 		Hostname: hostname,
 		Status:   "Registering",
 		LastSeen: time.Now(),
@@ -37,6 +34,6 @@ func (s *Service) CreateNode(hostname string) (*models.Node, error) {
 }
 
 // GetNode retrieves a node by its ID.
-func (s *Service) GetNode(id string) (*models.Node, error) {
+func (s *Service) GetNode(id int64) (*models.Node, error) {
 	return s.store.GetNode(id)
 }

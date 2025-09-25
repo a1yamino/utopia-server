@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 	"utopia-server/internal/models"
@@ -73,16 +74,21 @@ func (s *DiscoveryService) discover() {
 
 	for _, proxy := range proxies {
 		if strings.HasSuffix(proxy.Name, "_control") {
-			nodeID := strings.TrimSuffix(proxy.Name, "_control")
-			s.updateNode(nodeID, proxy.RemotePort)
+			nodeIDStr := strings.TrimSuffix(proxy.Name, "_control")
+			s.updateNode(nodeIDStr, proxy.RemotePort)
 		}
 	}
 }
 
-func (s *DiscoveryService) updateNode(nodeID string, controlPort int) {
+func (s *DiscoveryService) updateNode(nodeIDStr string, controlPort int) {
+	nodeID, err := strconv.ParseInt(nodeIDStr, 10, 64)
+	if err != nil {
+		log.Printf("Error parsing node ID %s: %v", nodeIDStr, err)
+		return
+	}
 	node, err := s.store.GetNode(nodeID)
 	if err != nil {
-		log.Printf("Error getting node %s: %v", nodeID, err)
+		log.Printf("Error getting node %d: %v", nodeID, err)
 		return
 	}
 
@@ -95,9 +101,9 @@ func (s *DiscoveryService) updateNode(nodeID string, controlPort int) {
 	node.LastSeen = time.Now()
 
 	if err := s.store.UpdateNode(node); err != nil {
-		log.Printf("Error updating node %s: %v", nodeID, err)
+		log.Printf("Error updating node %d: %v", nodeID, err)
 	} else {
-		log.Printf("Node %s is online, control port: %d", nodeID, controlPort)
+		log.Printf("Node %d is online, control port: %d", nodeID, controlPort)
 	}
 }
 

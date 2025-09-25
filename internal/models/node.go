@@ -18,7 +18,7 @@ type GpuInfo struct {
 
 // Node 代表一个计算节点，可以承载 GPU 工作负载。
 type Node struct {
-	ID          string    `json:"id" gorm:"primaryKey"`
+	ID          int64     `json:"id" gorm:"primaryKey"`
 	Hostname    string    `json:"hostname"`
 	Status      string    `json:"status"` // Online, Offline, Registering
 	Gpus        []GpuInfo `json:"gpus" gorm:"type:json"`

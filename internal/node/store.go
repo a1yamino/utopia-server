@@ -10,21 +10,23 @@ import (
 // Store 定义了节点数据的持久化接口。
 type Store interface {
 	CreateNode(node *models.Node) error
-	GetNode(id string) (*models.Node, error)
+	GetNode(id int64) (*models.Node, error)
 	ListNodes() ([]*models.Node, error)
 	UpdateNode(node *models.Node) error
 }
 
 // memStore 是 Store 接口的一个内存实现，主要用于测试。
 type memStore struct {
-	mu    sync.RWMutex
-	nodes map[string]*models.Node
+	mu     sync.RWMutex
+	nodes  map[int64]*models.Node
+	nextID int64
 }
 
 // NewMemStore 创建一个新的 memStore 实例。
 func NewMemStore() Store {
 	return &memStore{
-		nodes: make(map[string]*models.Node),
+		nodes:  make(map[int64]*models.Node),
+		nextID: 1,
 	}
 }
 
@@ -33,21 +35,20 @@ func (s *memStore) CreateNode(node *models.Node) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.nodes[node.ID]; exists {
-		return fmt.Errorf("node with id %s already exists", node.ID)
-	}
+	node.ID = s.nextID
+	s.nextID++
 	s.nodes[node.ID] = node
 	return nil
 }
 
 // GetNode 从内存中检索一个节点。
-func (s *memStore) GetNode(id string) (*models.Node, error) {
+func (s *memStore) GetNode(id int64) (*models.Node, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	node, exists := s.nodes[id]
 	if !exists {
-		return nil, fmt.Errorf("node with id %s not found", id)
+		return nil, fmt.Errorf("node with id %d not found", id)
 	}
 	return node, nil
 }
@@ -70,7 +71,7 @@ func (s *memStore) UpdateNode(node *models.Node) error {
 	defer s.mu.Unlock()
 
 	if _, exists := s.nodes[node.ID]; !exists {
-		return fmt.Errorf("node with id %s not found", node.ID)
+		return fmt.Errorf("node with id %d not found", node.ID)
 	}
 	s.nodes[node.ID] = node
 	return nil

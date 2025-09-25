@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"utopia-server/internal/client"
@@ -79,7 +81,7 @@ func (c *Controller) reconcilePending(claim *models.GpuClaim) {
 
 	log.Printf("GpuClaim %s scheduled to node %s", claim.ID, node.ID)
 	claim.Status.Phase = models.GpuClaimPhaseScheduled
-	claim.Status.NodeName = node.ID
+	claim.Status.NodeName = fmt.Sprintf("%d", node.ID)
 
 	if err := c.store.Update(claim); err != nil {
 		log.Printf("Failed to update GpuClaim %s after scheduling: %v", claim.ID, err)
@@ -87,7 +89,17 @@ func (c *Controller) reconcilePending(claim *models.GpuClaim) {
 }
 
 func (c *Controller) reconcileScheduled(claim *models.GpuClaim) {
-	node, err := c.nodeStore.GetNode(claim.Status.NodeName)
+	nodeID, err := strconv.ParseInt(claim.Status.NodeName, 10, 64)
+	if err != nil {
+		log.Printf("Failed to parse node ID %s for GpuClaim %s: %v", claim.Status.NodeName, claim.ID, err)
+		claim.Status.Phase = models.GpuClaimPhaseFailed
+		claim.Status.Reason = "InvalidNodeID"
+		if err := c.store.Update(claim); err != nil {
+			log.Printf("Failed to update GpuClaim %s to Failed: %v", claim.ID, err)
+		}
+		return
+	}
+	node, err := c.nodeStore.GetNode(nodeID)
 	if err != nil {
 		log.Printf("Failed to get node %s for GpuClaim %s: %v", claim.Status.NodeName, claim.ID, err)
 		claim.Status.Phase = models.GpuClaimPhaseFailed

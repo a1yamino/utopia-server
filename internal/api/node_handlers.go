@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 	"utopia-server/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -33,13 +34,13 @@ func (s *Server) handleNodeRegister(c *gin.Context) {
 
 func (s *Server) handleGetNodeStatus(c *gin.Context) {
 	idStr := c.Param("id")
-	// id, err := strconv.ParseUint(idStr, 10, 64)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node ID"})
-	// 	return
-	// }
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node ID"})
+		return
+	}
 
-	node, err := s.nodeService.GetNode(idStr)
+	node, err := s.nodeService.GetNode(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "node not found"})
 		return

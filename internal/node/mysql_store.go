@@ -21,15 +21,21 @@ func (s *mysqlStore) CreateNode(node *models.Node) error {
 		return fmt.Errorf("failed to marshal gpus: %w", err)
 	}
 
-	query := "INSERT INTO nodes (id, hostname, status, gpus, control_port, last_seen) VALUES (?, ?, ?, ?, ?, ?)"
-	_, err = s.db.Exec(query, node.ID, node.Hostname, node.Status, gpus, node.ControlPort, node.LastSeen)
+	query := "INSERT INTO nodes (hostname, status, gpus, control_port, last_seen) VALUES (?, ?, ?, ?, ?)"
+	result, err := s.db.Exec(query, node.Hostname, node.Status, gpus, node.ControlPort, node.LastSeen)
 	if err != nil {
 		return fmt.Errorf("failed to create node: %w", err)
 	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get last insert ID: %w", err)
+	}
+	node.ID = id
 	return nil
 }
 
-func (s *mysqlStore) GetNode(id string) (*models.Node, error) {
+func (s *mysqlStore) GetNode(id int64) (*models.Node, error) {
 	query := "SELECT id, hostname, status, gpus, control_port, last_seen FROM nodes WHERE id = ?"
 	row := s.db.QueryRow(query, id)
 

@@ -16,7 +16,7 @@ CREATE TABLE `users` (
    );
 
 CREATE TABLE `nodes` (
-    `id` VARCHAR(255) NOT NULL,
+    `id` INT NOT NULL AUTO_INCREMENT,
     `hostname` VARCHAR(255),
     `status` VARCHAR(255),
     `gpus` JSON,
