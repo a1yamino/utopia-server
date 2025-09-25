@@ -28,7 +28,7 @@ func (s *Server) handleNodeRegister(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"node-id": newNode.ID})
+	c.JSON(http.StatusCreated, gin.H{"node_id": newNode.ID})
 }
 
 func (s *Server) handleGetNodeStatus(c *gin.Context) {
