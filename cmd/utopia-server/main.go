@@ -89,9 +89,11 @@ func main() {
 	ctrl := controller.NewController(gpuClaimStore, sched, nodeStore, agentClient)
 	stopCh := make(chan struct{})
 	defer close(stopCh)
+	log.Println("Starting controller...")
 	go ctrl.Run(stopCh)
 
 	// Setup and run discovery service
+	log.Println("Starting discovery service...")
 	discoveryService := node.NewDiscoveryService(
 		fmt.Sprintf("http://localhost:%d", cfg.FRP.DashboardPort),
 		cfg.FRP.DashboardUser,
@@ -101,14 +103,16 @@ func main() {
 	go discoveryService.Run(stopCh)
 
 	// Setup and run health check service
+	log.Println("Starting health check service...")
 	healthCheckService := node.NewHealthCheckService(nodeStore)
 	go healthCheckService.Run(stopCh)
 
 	server := api.NewServer(cfg.Server, authService, nodeService, gpuClaimStore, agentClient)
 
+	log.Println("Starting API server...")
 	go func() {
 		listenAddr := fmt.Sprintf("%s:%s", cfg.Server.Addr, cfg.Server.Port)
-		log.Printf("Starting server on %s", listenAddr)
+		log.Printf("API server listening on %s", listenAddr)
 		if err := server.Run(); err != nil {
 			log.Fatalf("could not start server: %v", err)
 		}
