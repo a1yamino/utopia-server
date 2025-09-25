@@ -16,6 +16,7 @@ const frpsConfigTemplate = `
 bindPort = {{ .BindPort }}
 auth.token = "{{ .Token }}"
 webServer.port = {{ .DashboardPort }}
+webServer.addr = "{{ .DashboardAddr }}"
 webServer.user = "{{ .DashboardUser }}"
 webServer.password = "{{ .DashboardPwd }}"
 `

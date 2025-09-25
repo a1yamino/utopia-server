@@ -39,6 +39,7 @@ type FRPConfig struct {
 	DashboardPort int    `mapstructure:"dashboard_port"`
 	DashboardUser string `mapstructure:"dashboard_user"`
 	DashboardPwd  string `mapstructure:"dashboard_pwd"`
+	DashboardAddr string `mapstructure:"dashboard_addr"`
 	AgentToken    string `mapstructure:"agent_token"`
 }
 

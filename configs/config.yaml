@@ -5,7 +5,7 @@ server:
 
 # Database configuration
 database:
-  dsn: "root:password@tcp(127.0.0.1:3306)/utopia?parseTime=true"
+  dsn: "utopia:45e8658a3ed833-f960487b8416c07D@tcp(mysql4a07f5fe11f0.rds.ivolces.com:3306)/utopia2?parseTime=true"
 
 # JWT configuration
 jwt:
@@ -16,7 +16,8 @@ jwt:
 frp:
   bind_port: 7000
   token: "utopia-auth-token"
+  dashboard_addr: "0.0.0.0"
   dashboard_port: 7500
   dashboard_user: "admin"
   dashboard_pwd: "admin"
-  agent_token: "a-secret-internal-token"
+  agent_token: "a_very_secret_agent_api_token"
