@@ -35,6 +35,7 @@ func (c *AgentClient) CreateContainer(node *models.Node, claim *models.GpuClaim)
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.config.AgentToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

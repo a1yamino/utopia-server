@@ -104,7 +104,7 @@ func main() {
 
 	// Setup and run health check service
 	log.Println("Starting health check service...")
-	healthCheckService := node.NewHealthCheckService(nodeStore)
+	healthCheckService := node.NewHealthCheckService(nodeStore, cfg.FRP)
 	go healthCheckService.Run(stopCh)
 
 	server := api.NewServer(cfg.Server, authService, nodeService, gpuClaimStore, agentClient)

@@ -7,17 +7,19 @@ import (
 	"net/http"
 	"time"
 
+	"utopia-server/internal/config"
 	"utopia-server/internal/models"
 )
 
 // HealthCheckService 定期轮询节点健康状况。
 type HealthCheckService struct {
-	store Store
+	store  Store
+	config config.FRPConfig
 }
 
 // NewHealthCheckService 创建一个新的 HealthCheckService 实例。
-func NewHealthCheckService(store Store) *HealthCheckService {
-	return &HealthCheckService{store: store}
+func NewHealthCheckService(store Store, cfg config.FRPConfig) *HealthCheckService {
+	return &HealthCheckService{store: store, config: cfg}
 }
 
 // Run 启动健康检查轮询循环。
@@ -55,7 +57,15 @@ func (s *HealthCheckService) performCheck() {
 
 func (s *HealthCheckService) checkNode(node *models.Node) {
 	url := fmt.Sprintf("http://localhost:%d/api/v1/metrics", node.ControlPort)
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("failed to create health check request for node %d: %v", node.ID, err)
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+s.config.AgentToken)
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Node %s (%d) is offline: %v", node.Hostname, node.ID, err)
 		node.Status = models.NodeStatusOffline
