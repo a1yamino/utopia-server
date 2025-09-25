@@ -62,39 +62,33 @@ func (s *DiscoveryService) discover() {
 		return
 	}
 
-	// Try to unmarshal as object first (common FRP API format)
+	// Parse the FRP API response with correct structure
 	var response struct {
 		Proxies []struct {
-			Name       string `json:"name"`
-			RemotePort int    `json:"remote_port"`
+			Name string `json:"name"`
+			Conf struct {
+				RemotePort int `json:"remotePort"`
+			} `json:"conf"`
+			Status string `json:"status"`
 		} `json:"proxies"`
 	}
 
-	var proxies []struct {
-		Name       string `json:"name"`
-		RemotePort int    `json:"remote_port"`
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Printf("Error unmarshalling response: %v", err)
+		log.Printf("Raw response: %s", string(body))
+		return
 	}
 
-	// Try object format first
-	if err := json.Unmarshal(body, &response); err == nil {
-		proxies = response.Proxies
-	} else {
-		// Fallback to array format
-		if err := json.Unmarshal(body, &proxies); err != nil {
-			log.Printf("Error unmarshalling response: %v", err)
-			log.Printf("Raw response: %s", string(body))
-			return
-		}
-	}
+	proxies := response.Proxies
 
 	for _, proxy := range proxies {
-		log.Printf("Discovered proxy: %s on port %d", proxy.Name, proxy.RemotePort)
-		if strings.Contains(proxy.Name, "control_") {
+		log.Printf("Discovered proxy: %s on port %d, status: %s", proxy.Name, proxy.Conf.RemotePort, proxy.Status)
+		if strings.Contains(proxy.Name, "control_") && proxy.Status == "online" {
 			// 找到 "control_" 的位置，然后提取后面的部分
 			index := strings.Index(proxy.Name, "control_")
 			if index != -1 {
 				nodeIDStr := proxy.Name[index+len("control_"):]
-				s.updateNode(nodeIDStr, proxy.RemotePort)
+				s.updateNode(nodeIDStr, proxy.Conf.RemotePort)
 			}
 		}
 	}
