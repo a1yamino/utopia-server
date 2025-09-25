@@ -54,22 +54,22 @@ func (s *HealthCheckService) performCheck() {
 }
 
 func (s *HealthCheckService) checkNode(node *models.Node) {
-	url := fmt.Sprintf("http://localhost:%d/status", node.ControlPort)
+	url := fmt.Sprintf("http://localhost:%d/api/v1/metrics", node.ControlPort)
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("Node %s (%s) is offline: %v", node.Hostname, node.ID, err)
+		log.Printf("Node %s (%d) is offline: %v", node.Hostname, node.ID, err)
 		node.Status = models.NodeStatusOffline
 		node.ControlPort = 0 // 清空控制端口
 		node.LastSeen = time.Now()
 		if err := s.store.UpdateNode(node); err != nil {
-			log.Printf("Error updating node %s to offline: %v", node.ID, err)
+			log.Printf("Error updating node %d to offline: %v", node.ID, err)
 		}
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Node %s (%s) returned non-OK status: %s", node.Hostname, node.ID, resp.Status)
+		log.Printf("Node %s (%d) returned non-OK status: %s", node.Hostname, node.ID, resp.Status)
 		return
 	}
 
@@ -84,6 +84,6 @@ func (s *HealthCheckService) checkNode(node *models.Node) {
 	node.Gpus = status.Gpus
 	node.LastSeen = time.Now()
 	if err := s.store.UpdateNode(node); err != nil {
-		log.Printf("Error updating node %s with new status: %v", node.ID, err)
+		log.Printf("Error updating node %d with new status: %v", node.ID, err)
 	}
 }

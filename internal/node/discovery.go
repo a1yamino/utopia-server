@@ -27,7 +27,6 @@ func (s *DiscoveryService) Run(stopCh <-chan struct{}) {
 	for {
 		select {
 		case <-ticker.C:
-			log.Println("Running discovery...")
 			s.discover()
 		case <-stopCh:
 			return
@@ -82,7 +81,6 @@ func (s *DiscoveryService) discover() {
 	proxies := response.Proxies
 
 	for _, proxy := range proxies {
-		log.Printf("Discovered proxy: %s on port %d, status: %s", proxy.Name, proxy.Conf.RemotePort, proxy.Status)
 		if strings.Contains(proxy.Name, "control_") && proxy.Status == "online" {
 			// 找到 "control_" 的位置，然后提取后面的部分
 			index := strings.Index(proxy.Name, "control_")
