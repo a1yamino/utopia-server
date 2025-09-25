@@ -21,7 +21,7 @@ func (s *mysqlStore) CreateNode(node *models.Node) error {
 		return fmt.Errorf("failed to marshal gpus: %w", err)
 	}
 
-	query := "INSERT INTO nodes (hostname, status, gpus, control_port, last_seen) VALUES (?, ?, ?, ?, ?)"
+	query := "INSERT INTO nodes (id, hostname, status, gpus, control_port, last_seen) VALUES (NULL, ?, ?, ?, ?, ?)"
 	result, err := s.db.Exec(query, node.Hostname, node.Status, gpus, node.ControlPort, node.LastSeen)
 	if err != nil {
 		return fmt.Errorf("failed to create node: %w", err)

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"utopia-server/internal/models"
@@ -25,6 +26,7 @@ func (s *Server) handleNodeRegister(c *gin.Context) {
 
 	newNode, err := s.nodeService.CreateNode(req.Hostname)
 	if err != nil {
+		log.Printf("Error creating node: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create node"})
 		return
 	}
