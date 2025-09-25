@@ -73,8 +73,8 @@ func (s *DiscoveryService) discover() {
 	}
 
 	for _, proxy := range proxies {
-		if strings.HasSuffix(proxy.Name, "_control") {
-			nodeIDStr := strings.TrimSuffix(proxy.Name, "_control")
+		if strings.HasSuffix(proxy.Name, "control_") {
+			nodeIDStr := strings.TrimSuffix(proxy.Name, "control_")
 			s.updateNode(nodeIDStr, proxy.RemotePort)
 		}
 	}
