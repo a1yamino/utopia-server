@@ -62,13 +62,32 @@ func (s *DiscoveryService) discover() {
 		return
 	}
 
+	// First, let's log the raw response to understand the format
+	log.Printf("FRP API response: %s", string(body))
+
+	// Try to unmarshal as object first (common FRP API format)
+	var response struct {
+		Proxies []struct {
+			Name       string `json:"name"`
+			RemotePort int    `json:"remote_port"`
+		} `json:"proxies"`
+	}
+
 	var proxies []struct {
 		Name       string `json:"name"`
 		RemotePort int    `json:"remote_port"`
 	}
-	if err := json.Unmarshal(body, &proxies); err != nil {
-		log.Printf("Error unmarshalling response: %v", err)
-		return
+
+	// Try object format first
+	if err := json.Unmarshal(body, &response); err == nil {
+		proxies = response.Proxies
+	} else {
+		// Fallback to array format
+		if err := json.Unmarshal(body, &proxies); err != nil {
+			log.Printf("Error unmarshalling response: %v", err)
+			log.Printf("Raw response: %s", string(body))
+			return
+		}
 	}
 
 	for _, proxy := range proxies {
