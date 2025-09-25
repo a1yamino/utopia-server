@@ -40,7 +40,7 @@ func (s *Scheduler) Schedule(claim *models.GpuClaim) (*models.Node, error) {
 
 		availableGpuCount := 0
 		for _, gpu := range node.Gpus {
-			if gpu.Status == "Available" {
+			if !gpu.Busy {
 				availableGpuCount++
 			}
 		}

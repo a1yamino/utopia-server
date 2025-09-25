@@ -83,15 +83,13 @@ func (s *HealthCheckService) checkNode(node *models.Node) {
 		return
 	}
 
-	var status struct {
-		Gpus []models.GpuInfo `json:"gpus"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
-		log.Printf("Error decoding status from node %s (%s): %v", node.Hostname, node.ID, err)
+	var metrics models.NodeMetrics
+	if err := json.NewDecoder(resp.Body).Decode(&metrics); err != nil {
+		log.Printf("Error decoding metrics from node %s (%d): %v", node.Hostname, node.ID, err)
 		return
 	}
 
-	node.Gpus = status.Gpus
+	node.Gpus = metrics.Gpus
 	node.LastSeen = time.Now()
 	if err := s.store.UpdateNode(node); err != nil {
 		log.Printf("Error updating node %d with new status: %v", node.ID, err)
