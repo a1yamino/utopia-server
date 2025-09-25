@@ -21,19 +21,18 @@ type DiscoveryService struct {
 
 // Run 启动发现服务。
 func (s *DiscoveryService) Run(stopCh <-chan struct{}) {
+	log.Println("Discovery service started")
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.discover()
-			case <-stopCh:
-				return
-			}
+	for {
+		select {
+		case <-ticker.C:
+			log.Println("Running discovery...")
+			s.discover()
+		case <-stopCh:
+			return
 		}
-	}()
+	}
 }
 
 func (s *DiscoveryService) discover() {
