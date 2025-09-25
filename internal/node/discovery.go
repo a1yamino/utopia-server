@@ -62,9 +62,6 @@ func (s *DiscoveryService) discover() {
 		return
 	}
 
-	// First, let's log the raw response to understand the format
-	log.Printf("FRP API response: %s", string(body))
-
 	// Try to unmarshal as object first (common FRP API format)
 	var response struct {
 		Proxies []struct {
@@ -91,6 +88,7 @@ func (s *DiscoveryService) discover() {
 	}
 
 	for _, proxy := range proxies {
+		log.Printf("Discovered proxy: %s on port %d", proxy.Name, proxy.RemotePort)
 		if strings.Contains(proxy.Name, "control_") {
 			// 找到 "control_" 的位置，然后提取后面的部分
 			index := strings.Index(proxy.Name, "control_")
